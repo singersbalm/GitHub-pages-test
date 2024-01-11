@@ -35,23 +35,30 @@
 <body>
 
 <div id="grid-container"></div>
+<button id="load-more-btn">Load More</button>
 
 <script>
+    lines = []
     // Function to read and process the CSV file
     function readCSV(file) {
         var reader = new FileReader();
         reader.onload = function (e) {
-            processData(e.target.result);
+            lines = e.target.result.split('\n');
+            loadMoreItems();
+            document.getElementById("add_file").remove()
         };
         reader.readAsText(file);
     }
 
-    // Function to process the CSV data
-    function processData(csvData) {
-        var lines = csvData.split('\n');
+    var itemsToLoad = 10;
+    // Variable to keep track of the current starting index
+    var startIndex = 1;
+
+    // Function to load more items
+    function loadMoreItems() {
         var gridContainer = document.getElementById('grid-container');
 
-        for (var i = 1; i < lines.length; i++) {
+        for (var i = startIndex; i < startIndex + itemsToLoad; i++) {
             var columns = lines[i].split(';');
             if (columns.length >= 4) {
                 var itemName = columns[0].trim();
@@ -59,33 +66,39 @@
                 var imageUrl = columns[2].trim();
                 var content = columns[3].trim();
 
-                // Create an item div
                 var itemDiv = document.createElement('div');
                 itemDiv.className = 'item';
 
-                // Create an image element
                 var imgElement = document.createElement('img');
                 imgElement.src = imageUrl;
-                imgElement.loading="lazy"
 
-                // Create a title element
                 var titleElement = document.createElement('div');
                 titleElement.textContent = title;
 
-                // Add click event to download file
                 itemDiv.addEventListener('click', function () {
                     downloadFile(itemName, content);
                 });
 
-                // Append elements to the item div
                 itemDiv.appendChild(imgElement);
                 itemDiv.appendChild(titleElement);
 
-                // Append the item div to the grid container
                 gridContainer.appendChild(itemDiv);
             }
         }
+
+        // Update the starting index for the next batch of items
+        startIndex += itemsToLoad;
+
+        // If all items are loaded, hide the "Load More" button
+        if (startIndex >= lines.length) {
+            loadMoreButton.style.display = 'none';
+        }
     }
+
+    // Add event listener to the "Load More" button
+    var loadMoreButton = document.getElementById('load-more-btn');
+    loadMoreButton.addEventListener('click', loadMoreItems);
+
 
     // Function to download a file
     function downloadFile(filename, content) {
@@ -100,7 +113,6 @@
     function handleFileInputChange(event) {
         var fileInput = event.target;
         var file = fileInput.files[0];
-
         if (file) {
             readCSV(file);
         }
@@ -110,6 +122,7 @@
     var fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.accept = '.csv';
+    fileInput.id = "add_file"
     fileInput.addEventListener('change', handleFileInputChange);
 
     // Append the file input to the body
