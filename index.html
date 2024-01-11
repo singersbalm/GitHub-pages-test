@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV File Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        #grid-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .item {
+            box-sizing: border-box;
+            width: 20%; /* Set the width to 20% to have 5 items in each row */
+            text-align: center;
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="grid-container"></div>
+
+<script>
+    // Function to read and process the CSV file
+    function readCSV(file) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+            processData(e.target.result);
+        };
+        reader.readAsText(file);
+    }
+
+    // Function to process the CSV data
+    function processData(csvData) {
+        var lines = csvData.split('\n');
+        var gridContainer = document.getElementById('grid-container');
+
+        for (var i = 1; i < lines.length; i++) {
+            var columns = lines[i].split(';');
+            if (columns.length >= 4) {
+                var itemName = columns[0].trim();
+                var title = columns[1].trim();
+                var imageUrl = columns[2].trim();
+                var content = columns[3].trim();
+
+                // Create an item div
+                var itemDiv = document.createElement('div');
+                itemDiv.className = 'item';
+
+                // Create an image element
+                var imgElement = document.createElement('img');
+                imgElement.src = imageUrl;
+                imgElement.loading="lazy"
+
+                // Create a title element
+                var titleElement = document.createElement('div');
+                titleElement.textContent = title;
+
+                // Add click event to download file
+                itemDiv.addEventListener('click', function () {
+                    downloadFile(itemName, content);
+                });
+
+                // Append elements to the item div
+                itemDiv.appendChild(imgElement);
+                itemDiv.appendChild(titleElement);
+
+                // Append the item div to the grid container
+                gridContainer.appendChild(itemDiv);
+            }
+        }
+    }
+
+    // Function to download a file
+    function downloadFile(filename, content) {
+        var blob = new Blob([content], { type: 'text/plain' });
+        var link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+
+    // Function to handle file input change
+    function handleFileInputChange(event) {
+        var fileInput = event.target;
+        var file = fileInput.files[0];
+
+        if (file) {
+            readCSV(file);
+        }
+    }
+
+    // Create a file input element
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv';
+    fileInput.addEventListener('change', handleFileInputChange);
+
+    // Append the file input to the body
+    document.body.appendChild(fileInput);
+</script>
+
+</body>
+</html>
+
